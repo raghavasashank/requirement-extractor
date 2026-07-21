@@ -1,4 +1,4 @@
-# Library Requirement Extractor
+# Requirement Extractor
 
 Extracts book and web-link references from academic documents (.docx / .pdf) and
 compiles them into a single formatted Excel file (`BOOKS` sheet) for library

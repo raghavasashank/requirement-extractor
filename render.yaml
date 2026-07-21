@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: library-requirement-extractor
+    name: requirement-extractor
     runtime: node
     plan: free
     buildCommand: npm run render-build
