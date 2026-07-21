@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-slate-50 text-slate-800;
+}
+
+.dashed-empty {
+  @apply border border-dashed border-slate-300 bg-slate-50/60;
+}
