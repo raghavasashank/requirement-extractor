@@ -13,6 +13,8 @@ function score(entry) {
 
 const MARKER_RE = /^(?:\d+[.)]|\[\d+\]|[•\-*])\s+/;
 
+const PUBLISHER_TAIL_RE = /^(pvt|ltd|inc|press|publications?|publishers?|edition|ed\b)/i;
+
 // Joins wrapped lines into whole entries and strips list markers.
 // With numbered/bulleted lists, a marker starts a new entry. Otherwise a line
 // continues the previous one if it starts lowercase or the previous ends in , : - & (heuristic).
@@ -21,11 +23,12 @@ export function mergeWrapped(lines) {
   const out = [];
   for (const l of lines) {
     const prev = out[out.length - 1];
-    const cont = hasMarkers ? !MARKER_RE.test(l) : /^[a-z]/.test(l) || /[,:&-]$|\band$/.test(prev || '');
+    const cont = hasMarkers ? !MARKER_RE.test(l) : /^[a-z]/.test(l) || /[,:&-]$|\band$/.test(prev || '') || PUBLISHER_TAIL_RE.test(l);
     if (prev !== undefined && cont) out[out.length - 1] = `${prev} ${l.replace(MARKER_RE, '')}`;
     else out.push(l.replace(MARKER_RE, ''));
   }
-  return out;
+  // Drop junk lines (page numbers, years, stray letters): a real entry has >= 8 letters.
+  return out.filter((e) => (e.match(/[a-z]/gi) || []).length >= 8);
 }
 
 // Returns { top: 3 best (in original order), rest: everything else (original order) }.

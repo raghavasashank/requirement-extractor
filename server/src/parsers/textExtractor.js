@@ -10,7 +10,7 @@ const TERM_LINE_RE = new RegExp(`^term\\s*:?\\s*(${ROMAN})`, 'i');
 const TEXT_BOOKS_RE = /^(?:\d+(?:\.\d+)?\.?\s*)?text\s*books?\b/i;
 const REF_BOOKS_RE = /^(?:\d+(?:\.\d+)?\.?\s*)?reference(?:s|\s*books?)?\b/i;
 const WEB_LINKS_RE = /^(?:\d+(?:\.\d+)?\.?\s*)?web\s*links?\b/i;
-const NEXT_MAJOR_RE = /^(?:\d+(?:\.\d+)?\.?\s*)?(course\s*outcomes?|laboratory|list\s*of\s*experiments)\b/i;
+const NEXT_MAJOR_RE = /^(?:\d+(?:\.\d+)?\.?\s*)?(course\s*articulation|articulation\s*matrix|course\s*outcomes?|laboratory|list\s*of\s*experiments)\b/i;
 
 function numberEntries(entries) {
   if (!entries.length) return '';
@@ -85,17 +85,17 @@ function extractBookSections(lines, blockStart, blockEnd) {
   let textBooksIdx = -1;
   let refBooksIdx = -1;
   let webLinksIdx = -1;
-  let nextMajorIdx = -1;
+  const majors = [];
 
   for (let i = blockStart; i < blockEnd; i++) {
     const l = lines[i].trim();
     if (textBooksIdx === -1 && TEXT_BOOKS_RE.test(l)) textBooksIdx = i;
     else if (refBooksIdx === -1 && REF_BOOKS_RE.test(l)) refBooksIdx = i;
     else if (webLinksIdx === -1 && WEB_LINKS_RE.test(l)) webLinksIdx = i;
-    else if (nextMajorIdx === -1 && NEXT_MAJOR_RE.test(l)) nextMajorIdx = i;
+    else if (NEXT_MAJOR_RE.test(l)) majors.push(i);
   }
 
-  const stoppers = [refBooksIdx, webLinksIdx, nextMajorIdx].filter((i) => i !== -1);
+  const stoppers = [refBooksIdx, webLinksIdx, ...majors].filter((i) => i !== -1);
 
   let textEntries = [];
   if (textBooksIdx !== -1) {
@@ -105,7 +105,7 @@ function extractBookSections(lines, blockStart, blockEnd) {
 
   let refEntries = [];
   if (refBooksIdx !== -1) {
-    const stoppers2 = [webLinksIdx, nextMajorIdx].filter((i) => i !== -1);
+    const stoppers2 = [webLinksIdx, ...majors].filter((i) => i !== -1);
     const end = findSubsectionEnd(refBooksIdx, stoppers2, blockEnd);
     refEntries = collectEntries(lines, refBooksIdx + 1, end);
   }
