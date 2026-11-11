@@ -1,4 +1,5 @@
 import { extractUrls } from './urlExtractor.js';
+import { splitTopBooks } from './bookRank.js';
 
 const ROMAN = '[IVX]+';
 const COURSE_CODE_RE = /^course\s*code\s*:?/i;
@@ -7,7 +8,7 @@ const GENERIC_HEADING_RE = /^(school of|department of|b\.?\s*tech\b)/i;
 const YEAR_LINE_RE = new RegExp(`^year\\s*:?\\s*(${ROMAN})\\s*(?:/\\s*(${ROMAN}))?`, 'i');
 const TERM_LINE_RE = new RegExp(`^term\\s*:?\\s*(${ROMAN})`, 'i');
 const TEXT_BOOKS_RE = /^(?:\d+(?:\.\d+)?\.?\s*)?text\s*books?\b/i;
-const REF_BOOKS_RE = /^(?:\d+(?:\.\d+)?\.?\s*)?reference\s*books?\b/i;
+const REF_BOOKS_RE = /^(?:\d+(?:\.\d+)?\.?\s*)?reference(?:s|\s*books?)?\b/i;
 const WEB_LINKS_RE = /^(?:\d+(?:\.\d+)?\.?\s*)?web\s*links?\b/i;
 const NEXT_MAJOR_RE = /^(?:\d+(?:\.\d+)?\.?\s*)?(course\s*outcomes?|laboratory|list\s*of\s*experiments)\b/i;
 
@@ -96,20 +97,25 @@ function extractBookSections(lines, blockStart, blockEnd) {
 
   const stoppers = [refBooksIdx, webLinksIdx, nextMajorIdx].filter((i) => i !== -1);
 
-  let textBooks = '';
+  let textEntries = [];
   if (textBooksIdx !== -1) {
     const end = findSubsectionEnd(textBooksIdx, stoppers, blockEnd);
-    textBooks = numberEntries(collectEntries(lines, textBooksIdx + 1, end));
+    textEntries = collectEntries(lines, textBooksIdx + 1, end);
   }
 
-  let referenceBooks = '';
+  let refEntries = [];
   if (refBooksIdx !== -1) {
     const stoppers2 = [webLinksIdx, nextMajorIdx].filter((i) => i !== -1);
     const end = findSubsectionEnd(refBooksIdx, stoppers2, blockEnd);
-    referenceBooks = numberEntries(collectEntries(lines, refBooksIdx + 1, end));
+    refEntries = collectEntries(lines, refBooksIdx + 1, end);
   }
 
-  return { textBooks, referenceBooks };
+  // Only the 3 most important stay as Text Books; the rest are reference books.
+  const { top, rest } = splitTopBooks(textEntries);
+  return {
+    textBooks: numberEntries(top),
+    referenceBooks: numberEntries([...rest, ...refEntries]),
+  };
 }
 
 /**
