@@ -1,5 +1,5 @@
 import { extractUrls } from './urlExtractor.js';
-import { splitTopBooks } from './bookRank.js';
+import { splitTopBooks, mergeWrapped } from './bookRank.js';
 
 const ROMAN = '[IVX]+';
 const COURSE_CODE_RE = /^course\s*code\s*:?/i;
@@ -24,7 +24,7 @@ function collectEntries(lines, start, end) {
     const l = lines[i].trim();
     if (l) entries.push(l);
   }
-  return entries;
+  return mergeWrapped(entries);
 }
 
 function findSubsectionEnd(startIdx, candidateIdxs, blockEnd) {

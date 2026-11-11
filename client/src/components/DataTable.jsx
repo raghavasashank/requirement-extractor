@@ -29,6 +29,9 @@ function EditableCell({ value, onChange, multiline }) {
         rows={3}
         placeholder="—"
         defaultValue={value}
+        ref={(el) => {
+          if (el) { el.style.height = 'auto'; el.style.height = `${el.scrollHeight}px`; } // show full text
+        }}
         onBlur={(e) => onChange(e.target.value)}
       />
     );

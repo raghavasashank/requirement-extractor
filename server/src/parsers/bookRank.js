@@ -11,6 +11,23 @@ function score(entry) {
   return year + ed / 100;
 }
 
+const MARKER_RE = /^(?:\d+[.)]|\[\d+\]|[•\-*])\s+/;
+
+// Joins wrapped lines into whole entries and strips list markers.
+// With numbered/bulleted lists, a marker starts a new entry. Otherwise a line
+// continues the previous one if it starts lowercase or the previous ends in , : - & (heuristic).
+export function mergeWrapped(lines) {
+  const hasMarkers = lines.some((l) => MARKER_RE.test(l));
+  const out = [];
+  for (const l of lines) {
+    const prev = out[out.length - 1];
+    const cont = hasMarkers ? !MARKER_RE.test(l) : /^[a-z]/.test(l) || /[,:&-]$|\band$/.test(prev || '');
+    if (prev !== undefined && cont) out[out.length - 1] = `${prev} ${l.replace(MARKER_RE, '')}`;
+    else out.push(l.replace(MARKER_RE, ''));
+  }
+  return out;
+}
+
 // Returns { top: 3 best (in original order), rest: everything else (original order) }.
 export function splitTopBooks(entries, n = 3) {
   const ranked = entries

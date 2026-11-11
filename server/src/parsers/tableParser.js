@@ -1,6 +1,6 @@
 import { parse } from 'node-html-parser';
 import { extractUrls } from './urlExtractor.js';
-import { splitTopBooks } from './bookRank.js';
+import { splitTopBooks, mergeWrapped } from './bookRank.js';
 
 const FIELD_MATCHERS = [
   { field: 'courseYear', re: /course\s*year|academic\s*year|\byear\b/i },
@@ -74,7 +74,7 @@ export function parseTablesFromHtml(html) {
         record.textBooks = [record.title, record.author].filter(Boolean).join(', ');
       }
       // Only the 3 most important stay as Text Books; the rest move to Reference Books.
-      const { top, rest } = splitTopBooks(record.textBooks.split('\n').filter(Boolean));
+      const { top, rest } = splitTopBooks(mergeWrapped(record.textBooks.split('\n').map((s) => s.trim()).filter(Boolean)));
       record.textBooks = top.join('\n');
       record.referenceBooks = [...rest, record.referenceBooks].filter(Boolean).join('\n');
       delete record.title;
